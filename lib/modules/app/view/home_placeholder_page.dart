@@ -11,37 +11,46 @@ class HomePlaceholderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-          decoration: BoxDecoration(
-            color: ThemeTokens.surfaceLayer,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: ThemeTokens.outerShadows,
+        child: _PlaceholderPanel(),
+      ),
+    );
+  }
+}
+
+class _PlaceholderPanel extends StatelessWidget {
+  const _PlaceholderPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return  Container(
+      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      decoration: BoxDecoration(
+        color: ThemeTokens.surfaceLayer,
+        borderRadius: BorderRadius.all(Radius.circular(28)),
+        boxShadow: ThemeTokens.outerShadows,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            '扎金花项目初始化完成',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: ThemeTokens.textPrimary,
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Text(
-                '扎金花项目初始化完成',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: ThemeTokens.textPrimary,
-                ),
-              ),
-              SizedBox(height: 12),
-              Text(
-                '后续功能将按任务清单逐步落地。',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: ThemeTokens.textSecondary,
-                ),
-              ),
-            ],
+          SizedBox(height: 12),
+          Text(
+            '后续功能将按任务清单逐步落地。',
+            style: TextStyle(
+              fontSize: 14,
+              color: ThemeTokens.textSecondary,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

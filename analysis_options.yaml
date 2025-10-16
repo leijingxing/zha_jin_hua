@@ -1,28 +1,32 @@
-# This file configures the analyzer, which statically analyzes Dart code to
-# check for errors, warnings, and lints.
-#
-# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
-# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
-# invoked from the command line by running `flutter analyze`.
+# Dart 分析器配置文件（中文说明版本），所有团队成员请勿删除注释。
+# 运行 `flutter analyze` 会按此规则校验代码质量。
 
-# The following line activates a set of recommended lints for Flutter apps,
-# packages, and plugins designed to encourage good coding practices.
+# 默认继承 Flutter 官方推荐规则集，避免遗漏基础规范。
 include: package:flutter_lints/flutter.yaml
 
-linter:
-  # The lint rules applied to this project can be customized in the
-  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
-  # included above or to enable additional rules. A list of all available lints
-  # and their documentation is published at https://dart.dev/lints.
-  #
-  # Instead of disabling a lint rule for the entire project in the
-  # section below, it can also be suppressed for a single line of code
-  # or a specific dart file by using the `// ignore: name_of_lint` and
-  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
-  # producing the lint.
-  rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+analyzer:
+  language:
+    # 开启严格推断，让类型推导要求明确，减少动态类型隐患。
+    strict-inference: true
+    strict-raw-types: true
+  exclude:
+    # 排除代码生成目录，防止自动生成文件被误报。
+    - lib/generated/**
+  errors:
+    # 对未使用的导入提升为错误，保持代码整洁。
+    unused_import: error
+    # 统一将 todo 提示设为信息级别，避免影响编译。
+    todo: info
 
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+linter:
+  rules:
+    # 全局禁止使用 print，改用日志工具或 Riverpod 观察器。
+    avoid_print: true
+    # 默认使用单引号，保持 Dart 官方推荐风格。
+    prefer_single_quotes: true
+    # 子组件属性放在最后，提升可读性。
+    sort_child_properties_last: true
+    # 声明集合类型时统一写入泛型，防止动态类型滥用。
+    always_specify_types: true
+    # 鼓励在常量构造函数前使用 const，降低重建成本。
+    prefer_const_constructors: true

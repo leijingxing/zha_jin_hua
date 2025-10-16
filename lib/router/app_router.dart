@@ -1,17 +1,21 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../modules/app/view/home_placeholder_page.dart';
 
-/// 提供全局路由配置，后续可根据环境或登录态动态生成。
-final appRouterProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
-    initialLocation: HomePlaceholderPage.routePath,
-    routes: [
-      GoRoute(
-        path: HomePlaceholderPage.routePath,
-        builder: (context, state) => const HomePlaceholderPage(),
-      ),
-    ],
-  );
-});
+/// 提供全局路由配置，可根据环境或登录态动态调整。
+final Provider<GoRouter> appRouterProvider = Provider<GoRouter>(
+  (Ref ref) {
+    return GoRouter(
+      initialLocation: HomePlaceholderPage.routePath,
+      routes: <RouteBase>[
+        GoRoute(
+          path: HomePlaceholderPage.routePath,
+          builder: (BuildContext context, GoRouterState state) =>
+              const HomePlaceholderPage(),
+        ),
+      ],
+    );
+  },
+);

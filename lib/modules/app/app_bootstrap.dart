@@ -1,44 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:riverpod/riverpod.dart' show Override;
 
+import '../../core/config/app_config.dart';
 import '../../core/config/app_environment.dart';
 import '../../core/theme/app_theme.dart';
+import '../../data/hive_initializer.dart';
 import '../../router/app_router.dart';
 
-/// 提供当前运行环境的 Riverpod Provider，便于模块按需读取。
-final environmentProvider = Provider<AppEnvironment>(
-  (ref) => throw UnimplementedError('尚未注入运行环境'),
+/// Exposes the resolved [AppConfig] to the widget tree.
+final Provider<AppConfig> appConfigProvider = Provider<AppConfig>(
+  (Ref ref) => throw UnimplementedError('appConfigProvider is not overridden'),
 );
 
-/// 应用启动入口，统一处理环境配置、依赖初始化与运行。
+/// Exposes the shared [HiveInitializer] instance for late usage.
+final Provider<HiveInitializer> hiveInitializerProvider = Provider<HiveInitializer>(
+  (Ref ref) =>
+      throw UnimplementedError('hiveInitializerProvider is not overridden'),
+);
+
+/// Performs shared bootstrapping tasks before rendering the app.
 Future<void> bootstrapApp(AppEnvironment environment) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Hive.initFlutter();
-  // TODO(开发者): 此处注册 Hive 适配器。
+  final AppConfig config = AppConfig.fromEnvironment(environment);
+  final HiveInitializer hiveInitializer = HiveInitializer(config);
+  await hiveInitializer.init();
 
   runApp(
     ProviderScope(
-      overrides: [
-        environmentProvider.overrideWithValue(environment),
+      overrides: <Override>[
+        appConfigProvider.overrideWithValue(config),
+        hiveInitializerProvider.overrideWithValue(hiveInitializer),
       ],
-      child: const ZjhApp(),
+      child: const _AppRoot(),
     ),
   );
 }
 
-/// 全局应用组件，负责加载主题与路由。
-class ZjhApp extends ConsumerWidget {
-  const ZjhApp({super.key});
+class _AppRoot extends ConsumerWidget {
+  const _AppRoot();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(appRouterProvider);
+    final AppConfig config = ref.watch(appConfigProvider);
+    final GoRouter router = ref.watch(appRouterProvider);
+
     return MaterialApp.router(
-      title: '扎金花',
+      title: 'Zha Jin Hua',
+      debugShowCheckedModeBanner: !config.isProd,
       theme: buildAppTheme(),
-      debugShowCheckedModeBanner: false,
       routerConfig: router,
     );
   }

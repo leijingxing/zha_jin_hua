@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zha_jin_hua/modules/app/view/home_placeholder_page.dart';
 
 void main() {
-  testWidgets('占位页加载后展示初始化提示', (tester) async {
+  testWidgets('占位页加载后展示初始化提示', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: HomePlaceholderPage(),

@@ -8,7 +8,7 @@ ThemeData buildAppTheme() {
     useMaterial3: true,
     brightness: Brightness.light,
     scaffoldBackgroundColor: ThemeTokens.backgroundBase,
-    colorScheme: ColorScheme.light(
+    colorScheme: const ColorScheme.light(
       primary: ThemeTokens.accentPrimary,
       onPrimary: Colors.white,
       secondary: ThemeTokens.accentVictory,
@@ -56,7 +56,7 @@ ThemeData buildAppTheme() {
 
 /// 自定义字体层级，强化信息层次感。
 TextTheme _buildTextTheme() {
-  const base = TextStyle(
+  const TextStyle base = TextStyle(
     color: ThemeTokens.textPrimary,
     fontFamily: 'PingFang SC',
   );
