@@ -80,7 +80,9 @@ class PlayerState {
       name: name ?? this.name,
       isBot: isBot ?? this.isBot,
       stack: stack ?? this.stack,
-      hand: hand ?? this.hand,
+      hand: hand != null
+          ? List<PlayingCard>.unmodifiable(hand)
+          : this.hand,
       chipsInPot: chipsInPot ?? this.chipsInPot,
       hasSeenCards: hasSeenCards ?? this.hasSeenCards,
       roundStatus: roundStatus ?? this.roundStatus,
