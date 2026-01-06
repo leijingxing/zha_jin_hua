@@ -200,7 +200,7 @@ class _TableSurface extends StatelessWidget {
                 child: _SeatWithCards(
                   player: controller.players[1],
                   isActive: controller.isActivePlayer(1),
-                  showFace: controller.revealAll.value,
+                  showFace: controller.inGame.value || controller.revealAll.value,
                   cardWidth: 32,
                   cardHeight: 44,
                 ),
@@ -215,7 +215,7 @@ class _TableSurface extends StatelessWidget {
                 child: _SeatWithCards(
                   player: controller.players[2],
                   isActive: controller.isActivePlayer(2),
-                  showFace: controller.revealAll.value,
+                  showFace: controller.inGame.value || controller.revealAll.value,
                   cardWidth: 30,
                   cardHeight: 42,
                 ),
@@ -230,7 +230,7 @@ class _TableSurface extends StatelessWidget {
                 child: _SeatWithCards(
                   player: controller.players[3],
                   isActive: controller.isActivePlayer(3),
-                  showFace: controller.revealAll.value,
+                  showFace: controller.inGame.value || controller.revealAll.value,
                   cardWidth: 30,
                   cardHeight: 42,
                 ),
