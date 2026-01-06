@@ -27,7 +27,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.game,
-      page: () => const GameView(),
+      page: () =>  GameView(),
     ),
   ];
 }

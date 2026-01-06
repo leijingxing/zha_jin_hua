@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'game_controller.dart';
+
 class GameView extends StatelessWidget {
-  const GameView({super.key});
+  GameView({super.key});
+
+  final GameController controller = Get.put(GameController());
 
   @override
   Widget build(BuildContext context) {
@@ -34,45 +38,26 @@ class GameView extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               child: Column(
                 children: [
-                  _TopBar(mode: mode),
+                  _TopBar(mode: mode, controller: controller),
                   const SizedBox(height: 8),
                   Expanded(
                     child: Row(
                       children: [
                         _SidePanel(
                           title: '玩家列表',
-                          child: Column(
-                            children: const [
-                              _PlayerTile(name: '你', chips: 1200, isDealer: true),
-                              SizedBox(height: 6),
-                              _PlayerTile(name: '玩家A', chips: 980),
-                              SizedBox(height: 6),
-                              _PlayerTile(name: '玩家B', chips: 1050),
-                              SizedBox(height: 6),
-                              _PlayerTile(name: '玩家C', chips: 760),
-                            ],
-                          ),
+                          child: _PlayerList(controller: controller),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: _TableArea(mode: mode),
+                          child: _TableArea(
+                            mode: mode,
+                            controller: controller,
+                          ),
                         ),
                         const SizedBox(width: 10),
                         _SidePanel(
                           title: '操作区',
-                          child: Column(
-                            children: const [
-                              _ActionButton(label: '跟注', accent: Color(0xFF4DA680)),
-                              SizedBox(height: 6),
-                              _ActionButton(label: '加注', accent: Color(0xFFB08D32)),
-                              SizedBox(height: 6),
-                              _ActionButton(label: '看牌', accent: Color(0xFF5B77DB)),
-                              SizedBox(height: 6),
-                              _ActionButton(label: '比牌', accent: Color(0xFF8E5BAF)),
-                              SizedBox(height: 6),
-                              _ActionButton(label: '弃牌', accent: Color(0xFFB0444B)),
-                            ],
-                          ),
+                          child: _ActionPanel(controller: controller),
                         ),
                       ],
                     ),
@@ -89,9 +74,11 @@ class GameView extends StatelessWidget {
 
 class _TableArea extends StatelessWidget {
   final String mode;
+  final GameController controller;
 
   const _TableArea({
     required this.mode,
+    required this.controller,
   });
 
   @override
@@ -125,25 +112,36 @@ class _TableArea extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              _StatusChip(label: mode),
-              const SizedBox(width: 8),
-              const _StatusChip(label: '回合 1/10'),
-              const Spacer(),
-              const _StatusChip(label: '底池 1200'),
-            ],
+          Obx(
+            () => Row(
+              children: [
+                _StatusChip(label: mode),
+                const SizedBox(width: 8),
+                _StatusChip(
+                  label: '回合 ${controller.round.value}/${controller.maxRound}',
+                ),
+                const SizedBox(width: 8),
+                _StatusChip(label: '底注 ${controller.baseBet}'),
+                const SizedBox(width: 8),
+                _StatusChip(label: '当前注 ${controller.currentBet.value}'),
+                const Spacer(),
+                _StatusChip(label: '底池 ${controller.pot.value}'),
+                const SizedBox(width: 8),
+                _StatusChip(label: '倒计时 ${controller.countdown.value}s'),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
-          const Expanded(
-            child: _TableSurface(),
+          Expanded(
+            child: _TableSurface(controller: controller),
           ),
           const SizedBox(height: 2),
-          const _TableSeatCompact(name: '你', chips: 1200, isActive: true),
-          const SizedBox(height: 2),
-          const SizedBox(
-            height: 90,
-            child: _HandCardRow(owner: '你的手牌'),
+          SizedBox(
+            height: 110,
+            child: _HandCardRow(
+              owner: '你的手牌',
+              controller: controller,
+            ),
           ),
         ],
       ),
@@ -152,7 +150,11 @@ class _TableArea extends StatelessWidget {
 }
 
 class _TableSurface extends StatelessWidget {
-  const _TableSurface();
+  final GameController controller;
+
+  const _TableSurface({
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -172,9 +174,9 @@ class _TableSurface extends StatelessWidget {
         border: Border.all(color: const Color(0xFF2B5A46)),
       ),
       child: Stack(
-        children: const [
-          _FeltTexture(),
-          Positioned.fill(
+        children: [
+          const _FeltTexture(),
+          const Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
@@ -188,27 +190,63 @@ class _TableSurface extends StatelessWidget {
               ),
             ),
           ),
-          Positioned.fill(child: _TableRim()),
-          Center(child: _TableCore()),
-          Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: _TableSeat(name: '玩家A', chips: 980),
+          const Positioned.fill(child: _TableRim()),
+          const Center(child: _TableCore()),
+          Obx(
+            () => Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: _SeatWithCards(
+                  player: controller.players[1],
+                  isActive: controller.isActivePlayer(1),
+                  showFace: controller.revealAll.value,
+                  cardWidth: 32,
+                  cardHeight: 44,
+                ),
+              ),
             ),
           ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: EdgeInsets.only(left: 8),
-              child: _TableSeat(name: '玩家B', chips: 1050),
+          Obx(
+            () => Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: _SeatWithCards(
+                  player: controller.players[2],
+                  isActive: controller.isActivePlayer(2),
+                  showFace: controller.revealAll.value,
+                  cardWidth: 30,
+                  cardHeight: 42,
+                ),
+              ),
             ),
           ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: EdgeInsets.only(right: 8),
-              child: _TableSeat(name: '玩家C', chips: 760),
+          Obx(
+            () => Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: _SeatWithCards(
+                  player: controller.players[3],
+                  isActive: controller.isActivePlayer(3),
+                  showFace: controller.revealAll.value,
+                  cardWidth: 30,
+                  cardHeight: 42,
+                ),
+              ),
+            ),
+          ),
+          Obx(
+            () => Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _PotWidget(amount: controller.pot.value),
+                  const SizedBox(height: 6),
+                  _StatusChip(label: controller.statusText.value),
+                ],
+              ),
             ),
           ),
         ],
@@ -287,8 +325,12 @@ class _TableCore extends StatelessWidget {
 
 class _TopBar extends StatelessWidget {
   final String mode;
+  final GameController controller;
 
-  const _TopBar({required this.mode});
+  const _TopBar({
+    required this.mode,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -306,24 +348,30 @@ class _TopBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white10),
       ),
-      child: Row(
-        children: [
-          const Text(
-            '牌桌',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
+      child: Obx(
+        () => Row(
+          children: [
+            const Text(
+              '牌桌',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          _StatusChip(label: mode),
-          const Spacer(),
-          const Text(
-            '基础场',
-            style: TextStyle(color: Colors.white60, fontSize: 11),
-          ),
-        ],
+            const SizedBox(width: 8),
+            _StatusChip(label: mode),
+            const SizedBox(width: 8),
+            _StatusChip(
+              label: controller.inGame.value ? '进行中' : '未开始',
+            ),
+            const Spacer(),
+            _MiniButton(
+              label: controller.inGame.value ? '重新开局' : '开始发牌',
+              onPressed: controller.startGame,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -378,19 +426,127 @@ class _SidePanel extends StatelessWidget {
   }
 }
 
+class _PlayerList extends StatelessWidget {
+  final GameController controller;
+
+  const _PlayerList({
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(
+      () => Column(
+        children: List.generate(
+          controller.players.length,
+          (index) {
+            final player = controller.players[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: _PlayerTile(
+                name: player.name,
+                chips: player.chips,
+                isDealer: player.isDealer,
+                isActive: controller.isActivePlayer(index),
+                isFolded: player.isFolded,
+                hasSeen: player.hasSeen,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionPanel extends StatelessWidget {
+  final GameController controller;
+
+  const _ActionPanel({
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(
+      () {
+        final player = controller.players.first;
+        final canAct = controller.canAct;
+        final canFollow = canAct && controller.canFollow(player);
+        final canRaise = canAct && controller.canRaise(player);
+        final canPeek = canAct && !player.hasSeen && controller.canPeek;
+        final canCompare =
+            canAct && controller.activePlayerCount > 1 && controller.canCompare;
+        return Column(
+          children: [
+            _ActionButton(
+              label: controller.inGame.value ? '重新开局' : '开始发牌',
+              accent: const Color(0xFF4DA680),
+              enabled: true,
+              onPressed: controller.startGame,
+            ),
+            const SizedBox(height: 6),
+            _ActionButton(
+              label: '跟注',
+              accent: const Color(0xFF4DA680),
+              enabled: canFollow,
+              onPressed: controller.onFollow,
+            ),
+            const SizedBox(height: 6),
+            _ActionButton(
+              label: '加注',
+              accent: const Color(0xFFB08D32),
+              enabled: canRaise,
+              onPressed: controller.onRaise,
+            ),
+            const SizedBox(height: 6),
+            _ActionButton(
+              label: '看牌',
+              accent: const Color(0xFF5B77DB),
+              enabled: canPeek,
+              onPressed: controller.onPeek,
+            ),
+            const SizedBox(height: 6),
+            _ActionButton(
+              label: '比牌',
+              accent: const Color(0xFF8E5BAF),
+              enabled: canCompare,
+              onPressed: controller.onCompare,
+            ),
+            const SizedBox(height: 6),
+            _ActionButton(
+              label: '弃牌',
+              accent: const Color(0xFFB0444B),
+              enabled: canAct,
+              onPressed: controller.onFold,
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _PlayerTile extends StatelessWidget {
   final String name;
   final int chips;
   final bool isDealer;
+  final bool isActive;
+  final bool isFolded;
+  final bool hasSeen;
 
   const _PlayerTile({
     required this.name,
     required this.chips,
     this.isDealer = false,
+    this.isActive = false,
+    this.isFolded = false,
+    this.hasSeen = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final borderColor = isActive ? const Color(0xFFB08D32) : Colors.white10;
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
@@ -403,7 +559,14 @@ class _PlayerTile extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: borderColor.withOpacity(0.35),
+            blurRadius: 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -453,6 +616,14 @@ class _PlayerTile extends StatelessWidget {
                   '筹码 $chips',
                   style: const TextStyle(color: Colors.white70, fontSize: 9),
                 ),
+                const SizedBox(height: 2),
+                Text(
+                  isFolded ? '已弃牌' : (hasSeen ? '已看牌' : '未看牌'),
+                  style: TextStyle(
+                    color: isFolded ? Colors.redAccent : Colors.white38,
+                    fontSize: 8,
+                  ),
+                ),
               ],
             ),
           ),
@@ -465,14 +636,19 @@ class _PlayerTile extends StatelessWidget {
 class _ActionButton extends StatelessWidget {
   final String label;
   final Color accent;
+  final VoidCallback? onPressed;
+  final bool enabled;
 
   const _ActionButton({
     required this.label,
     required this.accent,
+    required this.onPressed,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final displayColor = enabled ? accent : accent.withOpacity(0.35);
     return SizedBox(
       height: 38,
       child: ElevatedButton(
@@ -484,14 +660,14 @@ class _ActionButton extends StatelessWidget {
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
         ),
-        onPressed: () {},
+        onPressed: enabled ? onPressed : null,
         child: Ink(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                accent.withOpacity(0.85),
-                accent.withOpacity(0.95),
-                accent,
+                displayColor.withOpacity(0.85),
+                displayColor.withOpacity(0.95),
+                displayColor,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -500,7 +676,7 @@ class _ActionButton extends StatelessWidget {
             border: Border.all(color: Colors.white24),
             boxShadow: [
               BoxShadow(
-                color: accent.withOpacity(0.35),
+                color: displayColor.withOpacity(0.35),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),
@@ -538,6 +714,38 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
+class _MiniButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _MiniButton({
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 26,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          backgroundColor: const Color(0xFF2B313B),
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        onPressed: onPressed,
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+}
+
 class _StatusChip extends StatelessWidget {
   final String label;
 
@@ -566,16 +774,19 @@ class _TableSeat extends StatelessWidget {
   final String name;
   final int chips;
   final bool isActive;
+  final bool isFolded;
 
   const _TableSeat({
     required this.name,
     required this.chips,
     this.isActive = false,
+    this.isFolded = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final borderColor = isActive ? const Color(0xFFB08D32) : Colors.white24;
+    final nameColor = isFolded ? Colors.white38 : Colors.white;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
@@ -607,16 +818,95 @@ class _TableSeat extends StatelessWidget {
             children: [
               Text(
                 name,
-                style: const TextStyle(color: Colors.white, fontSize: 9),
+                style: TextStyle(color: nameColor, fontSize: 9),
               ),
               Text(
-                '筹码 $chips',
+                isFolded ? '已弃牌' : '筹码 $chips',
                 style: const TextStyle(color: Colors.white54, fontSize: 8),
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SeatWithCards extends StatelessWidget {
+  final PlayerModel player;
+  final bool isActive;
+  final bool showFace;
+  final double cardWidth;
+  final double cardHeight;
+
+  const _SeatWithCards({
+    required this.player,
+    required this.isActive,
+    required this.showFace,
+    required this.cardWidth,
+    required this.cardHeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _TableSeat(
+          name: player.name,
+          chips: player.chips,
+          isActive: isActive,
+          isFolded: player.isFolded,
+        ),
+        const SizedBox(height: 4),
+        _SeatCards(
+          cards: player.cards,
+          showFace: showFace,
+          cardWidth: cardWidth,
+          cardHeight: cardHeight,
+        ),
+      ],
+    );
+  }
+}
+
+class _SeatCards extends StatelessWidget {
+  final List<CardModel> cards;
+  final bool showFace;
+  final double cardWidth;
+  final double cardHeight;
+
+  const _SeatCards({
+    required this.cards,
+    required this.showFace,
+    required this.cardWidth,
+    required this.cardHeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <Widget>[];
+    for (var index = 0; index < 3; index++) {
+      if (index > 0) {
+        items.add(const SizedBox(width: 3));
+      }
+      if (cards.length <= index) {
+        items.add(_CardBack(width: cardWidth, height: cardHeight));
+      } else if (showFace) {
+        items.add(
+          _CardFace(
+            card: cards[index],
+            width: cardWidth,
+            height: cardHeight,
+          ),
+        );
+      } else {
+        items.add(_CardBack(width: cardWidth, height: cardHeight));
+      }
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: items,
     );
   }
 }
@@ -681,7 +971,11 @@ class _TableSeatCompact extends StatelessWidget {
 }
 
 class _PotWidget extends StatelessWidget {
-  const _PotWidget();
+  final int amount;
+
+  const _PotWidget({
+    required this.amount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -708,15 +1002,15 @@ class _PotWidget extends StatelessWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          Text(
+        children: [
+          const Text(
             '底池',
             style: TextStyle(color: Colors.white70, fontSize: 10),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
-            '1200',
-            style: TextStyle(color: Colors.white, fontSize: 14),
+            '$amount',
+            style: const TextStyle(color: Colors.white, fontSize: 14),
           ),
         ],
       ),
@@ -726,9 +1020,11 @@ class _PotWidget extends StatelessWidget {
 
 class _HandCardRow extends StatelessWidget {
   final String owner;
+  final GameController controller;
 
   const _HandCardRow({
     required this.owner,
+    required this.controller,
   });
 
   @override
@@ -747,47 +1043,77 @@ class _HandCardRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.white10),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            owner,
-            style: const TextStyle(color: Colors.white70, fontSize: 8),
-          ),
-          const SizedBox(height: 3),
-          Row(
-            children: const [
-              _CardPlaceholder(),
-              SizedBox(width: 4),
-              _CardPlaceholder(),
-              SizedBox(width: 4),
-              _CardPlaceholder(),
+      child: Obx(
+        () {
+          final player = controller.players.first;
+          final showFace = player.hasSeen || controller.revealAll.value;
+          final cards = player.cards;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                owner,
+                style: const TextStyle(color: Colors.white70, fontSize: 8),
+              ),
+              const SizedBox(height: 3),
+              Row(
+                children: () {
+                  final items = <Widget>[];
+                  for (var index = 0; index < 3; index++) {
+                    Widget cardWidget;
+                    if (cards.length <= index) {
+                      cardWidget = const _CardBack();
+                    } else if (!showFace) {
+                      cardWidget = const _CardBack();
+                    } else {
+                      cardWidget = _CardFace(card: cards[index]);
+                    }
+                    items.add(cardWidget);
+                    if (index < 2) {
+                      items.add(const SizedBox(width: 4));
+                    }
+                  }
+                  return items;
+                }(),
+              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 }
 
-class _CardPlaceholder extends StatelessWidget {
-  const _CardPlaceholder();
+class _CardBack extends StatelessWidget {
+  final double width;
+  final double height;
+
+  const _CardBack({
+    this.width = 50,
+    this.height = 70,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final radius = width * 0.2;
+    final cornerWidth = width * 0.18;
+    final cornerHeight = height * 0.12;
+    final centerWidth = width * 0.52;
+    final centerHeight = height * 0.5;
+    final textSize = height * 0.2;
     return Container(
-      width: 50,
-      height: 70,
+      width: width,
+      height: height,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFF2F2F2),
-            Color(0xFFD9DDE2),
+            Color(0xFF2B313B),
+            Color(0xFF1A1F26),
           ],
         ),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: const Color(0xFFB9BEC6)),
         boxShadow: const [
           BoxShadow(
@@ -803,11 +1129,11 @@ class _CardPlaceholder extends StatelessWidget {
             left: 4,
             top: 4,
             child: Container(
-              width: 10,
-              height: 8,
+              width: cornerWidth,
+              height: cornerHeight,
               decoration: BoxDecoration(
                 color: const Color(0xFFB08D32),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(radius * 0.4),
               ),
             ),
           ),
@@ -815,27 +1141,77 @@ class _CardPlaceholder extends StatelessWidget {
             right: 4,
             bottom: 4,
             child: Container(
-              width: 10,
-              height: 8,
+              width: cornerWidth,
+              height: cornerHeight,
               decoration: BoxDecoration(
-                color: const Color(0xFF2B5A46),
-                borderRadius: BorderRadius.circular(4),
+                color: const Color(0xFF5B77DB),
+                borderRadius: BorderRadius.circular(radius * 0.4),
               ),
             ),
           ),
           Align(
             alignment: Alignment.center,
             child: Container(
-              width: 26,
-              height: 34,
+              width: centerWidth,
+              height: centerHeight,
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F8F8),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white70),
+                color: const Color(0xFF1D2430),
+                borderRadius: BorderRadius.circular(radius * 0.8),
+                border: Border.all(color: Colors.white24),
+              ),
+              child: Center(
+                child: Text(
+                  'ZJH',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: textSize,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CardFace extends StatelessWidget {
+  final CardModel card;
+  final double width;
+  final double height;
+
+  const _CardFace({
+    required this.card,
+    this.width = 50,
+    this.height = 70,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = width * 0.2;
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: const Color(0xFFB9BEC6)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x55000000),
+            blurRadius: 8,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Image.asset(
+        card.assetPath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _CardBack(width: width, height: height);
+        },
       ),
     );
   }
@@ -959,3 +1335,4 @@ class _GlowCircle extends StatelessWidget {
     );
   }
 }
+
