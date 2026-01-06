@@ -1,5 +1,8 @@
 # Repository Guidelines
 
+## 元信息
+- 注释,提示全部使用中文,编码使用 UTF-8
+
 ## 项目结构与模块组织
 - `lib/` 按 `core/`、`data/`、`modules/`、`router/`、`generated/` 分层，业务逻辑集中在 `modules/`，勿擅自改动 `generated/`。
 - `test/` 存放单元与 Widget 测试，命名与被测文件保持一致，例如 `modules/table/table_state_test.dart`。
