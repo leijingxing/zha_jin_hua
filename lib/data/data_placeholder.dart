@@ -1,0 +1,3 @@
+class DataPlaceholder {
+  const DataPlaceholder();
+}
