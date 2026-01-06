@@ -54,3 +54,33 @@
 - 日期：2026-01-06
   操作：修正玩法列表的 Obx 使用方式，避免延迟读取导致的 GetX 报错。
   影响文件：lib/modules/home/home_view.dart
+- 日期：2026-01-06
+  操作：新增横屏商务风格牌桌 UI 骨架。
+  影响文件：lib/modules/game/game_view.dart
+- 日期：2026-01-06
+  操作：进入牌桌页面时锁定横屏，退出恢复竖屏。
+  影响文件：lib/modules/game/game_view.dart
+- 日期：2026-01-06
+  操作：主页改为横屏布局并简化结构，右侧面板集中操作区；登录/注册锁定竖屏。
+  影响文件：lib/modules/home/home_view.dart、lib/modules/auth/login_view.dart、lib/modules/auth/register_view.dart
+- 日期：2026-01-06
+  操作：非登录页面启用沉浸模式隐藏系统状态栏，登录/注册恢复常规显示。
+  影响文件：lib/modules/home/home_view.dart、lib/modules/game/game_view.dart、lib/modules/auth/login_view.dart、lib/modules/auth/register_view.dart
+- 日期：2026-01-06
+  操作：牌桌页面改为静态横屏布局（移除横竖屏切换逻辑），并简化结构提升清晰度。
+  影响文件：lib/modules/game/game_view.dart
+- 日期：2026-01-06
+  操作：压缩牌桌 UI 间距与尺寸，侧栏支持滚动，避免溢出。
+  影响文件：lib/modules/game/game_view.dart
+- 日期：2026-01-06
+  操作：进一步缩小侧栏与控件尺寸，扩大中间牌桌视觉占比。
+  影响文件：lib/modules/game/game_view.dart
+- 日期：2026-01-06
+  操作：压缩牌桌内部布局与手牌区域高度，避免手牌与玩家位置信息重叠。
+  影响文件：lib/modules/game/game_view.dart
+- 日期：2026-01-06
+  操作：放大手牌显示并缩小玩家列表与侧栏尺寸。
+  影响文件：lib/modules/game/game_view.dart
+- 日期：2026-01-06
+  操作：将“你”的座位移出牌桌中心并缩小为紧凑样式。
+  影响文件：lib/modules/game/game_view.dart
